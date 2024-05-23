@@ -54,7 +54,7 @@ if query:
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
             # vectorstore = pickle.load(f)
-            vectorstore = FAISS.load_local("vectorstore", OpenAIEmbeddings())
+            vectorstore = FAISS.load_local("vectorstore", OpenAIEmbeddings(), allow_dangerous_deserialization=True)
             chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=vectorstore.as_retriever())
             result = chain({"question": query}, return_only_outputs=True)
             # result will be a dictionary of this format --> {"answer": "", "sources": [] }
