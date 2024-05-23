@@ -47,12 +47,14 @@ if process_url_clicked:
     # Save the FAISS index to a pickle file
     # with open(file_path, "wb") as f:
     #     pickle.dump(vectorstore_openai, f)
+    vectorstore_openai.save_local("vectorstore")
 
 query = main_placeholder.text_input("Question: ")
 if query:
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
-            vectorstore = pickle.load(f)
+            # vectorstore = pickle.load(f)
+            vectorstore = FAISS.load_local("vectorstore", OpenAIEmbeddings())
             chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=vectorstore.as_retriever())
             result = chain({"question": query}, return_only_outputs=True)
             # result will be a dictionary of this format --> {"answer": "", "sources": [] }
