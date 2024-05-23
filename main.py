@@ -45,8 +45,8 @@ if process_url_clicked:
     time.sleep(2)
 
     # Save the FAISS index to a pickle file
-    with open(file_path, "wb") as f:
-        pickle.dump(vectorstore_openai, f)
+    # with open(file_path, "wb") as f:
+    #     pickle.dump(vectorstore_openai, f)
 
 query = main_placeholder.text_input("Question: ")
 if query:
