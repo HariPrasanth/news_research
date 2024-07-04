@@ -1,18 +1,19 @@
 import os
 import streamlit as st
-import time
 import openai
 from langchain.document_loaders import UnstructuredURLLoader
 from dotenv import load_dotenv
 
-load_dotenv()  # take environment variables from .env (especially openai api key)
+# Load environment variables from .env (especially openai api key)
+load_dotenv()
 
 st.title("Article Research Tool")
 st.sidebar.title("Article URLs")
 
+# Initialize URLs list
 urls = []
 for i in range(3):
-    url = st.sidebar.text_input(f"URL {i+1}")
+    url = st.sidebar.text_input(f"URL {i + 1}")
     urls.append(url)
 
 process_url_clicked = st.sidebar.button("Process URLs")
@@ -49,7 +50,7 @@ if query:
         )
 
         st.header("Answer")
-        st.write(response.choices[0].message["content"])
+        st.write(response['choices'][0]['message']['content'])
 
         # Display sources, if available (if your model or API provides this feature)
         # This part may not be applicable if sources are not provided by the model
