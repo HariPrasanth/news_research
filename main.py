@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import pickle
 import time
 from langchain import OpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
@@ -24,7 +23,7 @@ process_url_clicked = st.sidebar.button("Process URLs")
 file_path = "faiss_store_openai.pkl"
 
 main_placeholder = st.empty()
-llm = OpenAI(temperature=0.9, max_tokens=500)
+llm = OpenAI(model_name="gpt-4o", temperature=0.9, max_tokens=500)  # Use GPT-4 model here
 
 if process_url_clicked:
     # load data
