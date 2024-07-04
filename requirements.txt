@@ -8,6 +8,6 @@ faiss-cpu
 libmagic
 python-magic
 #python-magic-bin==0.4.14
-openai~=0.28
+openai
 psutil
 requests~=2.32.2
