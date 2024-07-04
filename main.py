@@ -1,56 +1,70 @@
 import os
 import streamlit as st
-import openai
+import pickle
+import time
+from langchain import OpenAI
+from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredURLLoader
-from dotenv import load_dotenv
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
 
-# Load environment variables from .env (especially openai api key)
-load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()  # take environment variables from .env (especially openai api key)
 
 st.title("Article Research Tool")
 st.sidebar.title("Article URLs")
 
-# Initialize URLs list
 urls = []
 for i in range(3):
-    url = st.sidebar.text_input(f"URL {i + 1}")
+    url = st.sidebar.text_input(f"URL {i+1}")
     urls.append(url)
 
 process_url_clicked = st.sidebar.button("Process URLs")
+file_path = "faiss_store_openai.pkl"
 
 main_placeholder = st.empty()
-openai.api_key = os.getenv("OPENAI_API_KEY")  # Set your OpenAI API key here
-
-context = ""  # Initialize context
+llm = OpenAI(temperature=0.9, max_tokens=500)
 
 if process_url_clicked:
-    # Load data
+    # load data
     loader = UnstructuredURLLoader(urls=urls)
     main_placeholder.text("Data Loading...Started...✅✅✅")
     data = loader.load()
+    # split data
+    text_splitter = RecursiveCharacterTextSplitter(
+        separators=['\n\n', '\n', '.', ','],
+        chunk_size=1000
+    )
+    main_placeholder.text("Text Splitter...Started...✅✅✅")
+    docs = text_splitter.split_documents(data)
+    # create embeddings and save it to FAISS index
+    embeddings = OpenAIEmbeddings()
+    vectorstore_openai = FAISS.from_documents(docs, embeddings)
+    main_placeholder.text("Embedding Vector Started Building...✅✅✅")
+    time.sleep(2)
 
-    # Concatenate the articles into a single context string
-    context = " ".join([doc.page_content for doc in data])  # Update to use page_content
-
-    main_placeholder.text("Data Loading...Completed...✅✅✅")
+    # Save the FAISS index to a pickle file
+    # with open(file_path, "wb") as f:
+    #     pickle.dump(vectorstore_openai, f)
+    vectorstore_openai.save_local("vectorstore")
 
 query = main_placeholder.text_input("Question: ")
 if query:
-    if context:
-        # Formulate the prompt with context and query
-        prompt = f"{context}\n\nQuestion: {query}"
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            # vectorstore = pickle.load(f)
+            vectorstore = FAISS.load_local("vectorstore", OpenAIEmbeddings(), allow_dangerous_deserialization=True)
+            chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=vectorstore.as_retriever())
+            result = chain({"question": query}, return_only_outputs=True)
+            # result will be a dictionary of this format --> {"answer": "", "sources": [] }
+            st.header("Answer")
+            st.write(result["answer"])
 
-        # Query the GPT-4 model using the new API interface
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # Use the correct model name for GPT-4
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-
-        st.header("Answer")
-        st.write(response['choices'][0]['message']['content'])
-
-        # Display sources, if available (if your model or API provides this feature)
-        # This part may not be applicable if sources are not provided by the model
+            # Display sources, if available
+            sources = result.get("sources", "")
+            if sources:
+                st.subheader("Sources:")
+                sources_list = sources.split("\n")  # Split the sources by newline
+                for source in sources_list:
+                    st.write(source)
