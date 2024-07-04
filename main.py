@@ -1,10 +1,10 @@
 import os
 import streamlit as st
 import time
-from langchain import OpenAI
+import openai
 from langchain.document_loaders import UnstructuredURLLoader
-
 from dotenv import load_dotenv
+
 load_dotenv()  # take environment variables from .env (especially openai api key)
 
 st.title("Article Research Tool")
@@ -18,7 +18,7 @@ for i in range(3):
 process_url_clicked = st.sidebar.button("Process URLs")
 
 main_placeholder = st.empty()
-llm = OpenAI(model_name="gpt-4o", temperature=0.9, max_tokens=500)  # Use GPT-4 model here
+openai.api_key = os.getenv("OPENAI_API_KEY")  # Set your OpenAI API key here
 
 context = ""  # Initialize context
 
@@ -39,11 +39,17 @@ if query:
         # Formulate the prompt with context and query
         prompt = f"{context}\n\nQuestion: {query}"
 
-        # Query the GPT-4 model
-        response = llm(prompt)
+        # Query the GPT-4 model using the new API interface
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Use the correct model name for GPT-4
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
 
         st.header("Answer")
-        st.write(response)
+        st.write(response.choices[0].message["content"])
 
         # Display sources, if available (if your model or API provides this feature)
         # This part may not be applicable if sources are not provided by the model
