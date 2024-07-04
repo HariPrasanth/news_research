@@ -1,4 +1,6 @@
+import os
 import streamlit as st
+import time
 from langchain import OpenAI
 from langchain.document_loaders import UnstructuredURLLoader
 
@@ -16,7 +18,7 @@ for i in range(3):
 process_url_clicked = st.sidebar.button("Process URLs")
 
 main_placeholder = st.empty()
-llm = OpenAI(model_name="gpt-4o", temperature=0.9, max_tokens=500)  # Use GPT-4 model here
+llm = OpenAI(model_name="text-davinci-003", temperature=0.9, max_tokens=500)  # Use GPT-4 model here
 
 context = ""  # Initialize context
 
@@ -27,7 +29,7 @@ if process_url_clicked:
     data = loader.load()
 
     # Concatenate the articles into a single context string
-    context = " ".join([doc.text for doc in data])
+    context = " ".join([doc.page_content for doc in data])  # Update to use page_content
 
     main_placeholder.text("Data Loading...Completed...✅✅✅")
 
