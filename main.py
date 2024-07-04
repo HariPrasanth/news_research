@@ -18,7 +18,7 @@ for i in range(3):
 process_url_clicked = st.sidebar.button("Process URLs")
 
 main_placeholder = st.empty()
-llm = OpenAI(model_name="text-davinci-003", temperature=0.9, max_tokens=500)  # Use GPT-4 model here
+llm = OpenAI(model_name="gpt-4o", temperature=0.9, max_tokens=500)  # Use GPT-4 model here
 
 context = ""  # Initialize context
 
